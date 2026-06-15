@@ -4,7 +4,7 @@ import MysApi from '../../miao-plugin/models/MysApi.js'
 
 /**
  * 星铁·异相仲裁（末日幻影 / challenge_boss）
- * 复用 miao-plugin 的 ck/uid，自行补充米游社接口与 DS 签名。
+ * 复用 TRSS/miao 的 UID -> CK -> 米游社 checkCode 全流程，和深渊查询一致。
  */
 export class WangQi extends plugin {
   constructor () {
@@ -23,19 +23,26 @@ export class WangQi extends plugin {
   }
 
   async arbitration (e) {
-    // 复用 miao 的鉴权，拿到 ck/uid（星铁）
+    // 星铁标记必须在初始化前设置，TRSS 才会按 sr 绑定 UID/CK 查询
     e.isSr = true
+    e.game = 'sr'
+
+    // 和深渊一样：先拿查询 UID，再按 UID 查对应 CK/公共 CK
     let mys = await MysApi.init(e, 'all')
     if (!mys) return false
 
     let schedule = /上期/.test(e.msg) ? 2 : 1
-    let data = await this.getApocalypticShadow(mys, schedule)
+    let data = await mys.getData('challenge_boss', { schedule_type: schedule })
 
     if (!data) {
-      await e.reply('未获取到异相仲裁数据，可能本期未开启或战绩未公开~')
+      await e.reply('未获取到异相仲裁数据，可能本期未开启、战绩未公开或 CK 不可用~')
       return true
     }
-    if (!data.exists_data || !data.has_data) {
+    if (data.retcode && data.retcode !== 0) {
+      await e.reply(`米游社接口返回异常：${data.message || data.retcode}`)
+      return true
+    }
+    if (data.exists_data === false || data.has_data === false) {
       await e.reply('当前账号本期暂无异相仲裁战绩哦~')
       return true
     }
@@ -43,44 +50,6 @@ export class WangQi extends plugin {
     let renderData = this.dealData(data, mys.uid)
     await this.render(e, renderData)
     return true
-  }
-
-  /** 调用米游社 challenge_boss 接口 */
-  async getApocalypticShadow (mys, schedule = 1) {
-    // 借用 miao 已建立好的底层 mysApi（带 ck/device_fp）
-    let api = await mys.getMysApi(mys.e, 'challenge_boss', { log: false })
-    if (!api) return false
-
-    let url = `https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/challenge_boss`
-    let query = `role_id=${api.uid}&schedule_type=${schedule}&server=${api.server}&need_all=true`
-
-    let param = {
-      method: 'get',
-      headers: {
-        ...api.getHeaders(query, ''),
-        Cookie: api.cookie,
-        'x-rpc-device_fp': api._device_fp?.data?.device_fp || ''
-      },
-      timeout: 10000
-    }
-
-    let res
-    try {
-      res = await fetch(`${url}?${query}`, param)
-    } catch (err) {
-      logger.error(`[异相仲裁] 请求失败 ${err}`)
-      return false
-    }
-    if (!res.ok) {
-      logger.error(`[异相仲裁] ${res.status} ${res.statusText}`)
-      return false
-    }
-    let json = await res.json()
-    if (!json || json.retcode !== 0) {
-      logger.error(`[异相仲裁] retcode=${json?.retcode} ${json?.message}`)
-      return false
-    }
-    return json.data
   }
 
   /** 整理渲染数据 */
