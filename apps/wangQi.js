@@ -153,7 +153,7 @@ export class WangQi extends plugin {
         mobStar: mobStarSum,
         maxStar,
         roundNum: record.round_num ?? node1.round_num ?? '-',
-        score: totalScore || '-',
+        score: totalScore ?? '-',
         time: this.fmtTime(time),
         mobs,
         buffName: buff1.name_mi18n || buff1.name || '',
@@ -186,7 +186,7 @@ export class WangQi extends plugin {
     let totalStar = bossStar + mobStar
     let group = brief.group || {}
     let maxStar = Math.max(totalStar, lodash.sumBy(floors, (f) => Number(f.maxStar) || 0), 12)
-    let bestFloor = lodash.maxBy(floors, (f) => Number(f.star) * 1000 - (Number(f.roundNum) || 999)) || {}
+    let bestFloor = lodash.maxBy(floors, (f) => Number(f.star) * 1000 - (f.roundNum === undefined || f.roundNum === null || f.roundNum === '' ? 999 : Number(f.roundNum))) || {}
     let maxFloor = bestFloor.name
       ? `${bestFloor.name} ${bestFloor.star}/${bestFloor.maxStar}★`
       : '-'
@@ -235,6 +235,9 @@ export class WangQi extends plugin {
         type: m.type_mi18n || m.type || rec.type_mi18n || rec.type || '',
         star: rec.star_num ?? rec.star ?? m.star_num ?? '',
         roundNum: rec.round_num ?? '',
+        buffName: rec.buff?.name_mi18n || rec.buff?.name || rec.maze_buff?.name_mi18n || rec.maze_buff?.name || rec.field_buff?.name_mi18n || rec.field_buff?.name || m.buff?.name_mi18n || m.buff?.name || m.maze_buff?.name_mi18n || m.maze_buff?.name || '',
+        buffDesc: rec.buff?.desc_mi18n || rec.buff?.desc || rec.maze_buff?.desc_mi18n || rec.maze_buff?.desc || rec.field_buff?.desc_mi18n || rec.field_buff?.desc || m.buff?.desc_mi18n || m.buff?.desc || m.maze_buff?.desc_mi18n || m.maze_buff?.desc || '',
+        buffIcon: rec.buff?.icon || rec.maze_buff?.icon || rec.field_buff?.icon || m.buff?.icon || m.maze_buff?.icon || '',
         isFast: rec.is_fast ?? false,
         score: rec.score ?? rec.round_num ?? rec.damage ?? '',
         status: rec.status_mi18n || rec.status || (rec.is_killed ? '已击破' : ''),
@@ -252,6 +255,9 @@ export class WangQi extends plugin {
       type: r.type_mi18n || r.type || '',
       star: r.star_num ?? r.star ?? '',
       roundNum: r.round_num ?? '',
+      buffName: r.buff?.name_mi18n || r.buff?.name || r.maze_buff?.name_mi18n || r.maze_buff?.name || r.field_buff?.name_mi18n || r.field_buff?.name || '',
+      buffDesc: r.buff?.desc_mi18n || r.buff?.desc || r.maze_buff?.desc_mi18n || r.maze_buff?.desc || r.field_buff?.desc_mi18n || r.field_buff?.desc || '',
+      buffIcon: r.buff?.icon || r.maze_buff?.icon || r.field_buff?.icon || '',
       isFast: r.is_fast ?? false,
       score: r.score ?? r.round_num ?? r.damage ?? '',
       status: r.status_mi18n || r.status || (r.is_killed ? '已击破' : ''),

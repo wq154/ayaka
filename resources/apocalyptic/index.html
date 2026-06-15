@@ -86,13 +86,19 @@
                 <div class="chess-info">
                   <div class="chess-name">棋子{{mIdx + 1}} · {{mob.name}}</div>
                   <div class="chess-meta">
-                    {{if mob.roundNum}}轮次 {{mob.roundNum}}{{/if}}
+                    {{if mob.roundNum !== undefined && mob.roundNum !== null && mob.roundNum !== ""}}轮次 {{mob.roundNum}}{{/if}}
                     {{if mob.isFast}} · 极速{{/if}}
                   </div>
                 </div>
                 <div class="chess-star"><b>{{mob.star || 0}}</b><span>★</span></div>
               </div>
-              {{if mob.avatars && mob.avatars.length}}
+              {{if mob.buffName || mob.buffDesc}}
+              <div class="mini-buff">
+                {{if mob.buffIcon}}<img src="{{mob.buffIcon}}" />{{/if}}
+                <div><b>{{mob.buffName || '场地效果'}}</b>{{if mob.buffDesc}}<p>{{mob.buffDesc}}</p>{{/if}}</div>
+              </div>
+              {{/if}}
+              {if mob.avatars && mob.avatars.length}
               <div class="mini-team">
                 {{each mob.avatars a}}
                 <div class="mini-avatar rarity{{a.rarity}}">
@@ -113,7 +119,7 @@
         {{/each}}
       </div>
 
-      <div class="copyright">Created By ayaka · ayaka-bot.cn</div>
+      <div class="copyright">by miao-plugin&ayaka</div>
     </div>
   </div>
 </body>
