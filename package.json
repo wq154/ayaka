@@ -2,11 +2,18 @@
   "name": "sr-apocalyptic-plugin",
   "version": "1.0.0",
   "author": "人机代码",
-  "description": "崩坏：星穹铁道 异相仲裁(末日幻影) 战绩查询 Yunzai 插件",
+  "description": "TRSS-Yunzai 崩坏：星穹铁道异相仲裁（王棋）战绩查询插件",
   "type": "module",
   "dependencies": {
     "md5": "^2.3.0",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.2"
-  }
+  },
+  "keywords": [
+    "TRSS-Yunzai",
+    "Yunzai",
+    "StarRail",
+    "异相仲裁",
+    "王棋"
+  ]
 }
