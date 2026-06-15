@@ -1,80 +1,120 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>异相仲裁</title>
+  <meta charset="utf-8" />
+  <link rel="shortcut icon" href="#" />
   <link rel="stylesheet" href="{{_res_path}}apocalyptic/index.css"/>
 </head>
 <body {{@sys.scale}}>
-  <div class="container">
-    <div class="header">
-      <div class="title-box">
-        <div class="title">异相仲裁 · 王棋</div>
-        <div class="subtitle">Divergent Arbitration</div>
-      </div>
-      <div class="uid">UID {{uid}}</div>
-    </div>
+  <div class="container" id="container">
+    <div class="page">
+      <div class="bg-glow glow-1"></div>
+      <div class="bg-glow glow-2"></div>
+      <div class="grid-mask"></div>
 
-    <div class="summary">
-      <div class="sum-item">
-        <div class="num">{{totalStar}}</div>
-        <div class="label">王棋星数</div>
-      </div>
-      <div class="sum-item">
-        <div class="num">{{mobStar}}</div>
-        <div class="label">骑士星数</div>
-      </div>
-      <div class="sum-item">
-        <div class="num">{{battleNum}}</div>
-        <div class="label">挑战次数</div>
-      </div>
-    </div>
-    {{if scheduleTime}}<div class="period">周期：{{scheduleTime}}</div>{{/if}}
-
-    {{each floors floor}}
-    <div class="floor">
-      <div class="floor-head">
-        <div class="floor-name">{{floor.name}}</div>
-        <div class="stars">
-          {{set s = floor.star || 0}}
-          {{each [1,2,3,4] i}}
-          <span class="star {{if i <= s}}on{{/if}}">★</span>
-          {{/each}}
+      <div class="hero">
+        <div>
+          <div class="tag">STAR RAIL · CHALLENGE PEAK</div>
+          <div class="title">异相仲裁挑战回顾</div>
+          <div class="meta">UID {{uid}} · {{modeName}}{{if scheduleTime}} · {{scheduleTime}}{{/if}}</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">TOTAL STAR</div>
+          <div class="score"><b>{{totalStar}}</b><span>/{{maxStar}}</span></div>
+          <div class="score-sub">王棋 {{bossStar}} · 棋子 {{mobStar}}</div>
         </div>
       </div>
-      <div class="nodes">
-        <div class="node">
-          <div class="node-tag">上半</div>
-          <div class="node-score">{{floor.node1.score}}</div>
-          <div class="avatars">
-            {{each floor.node1.avatars a}}
-            <div class="avatar rarity{{a.rarity}}">
-              {{if a.icon}}<img src="{{a.icon}}"/>{{/if}}
-              <span class="lv">Lv{{a.level}}</span>
+
+      <div class="overview">
+        <div class="ov"><b>{{totalStar}}</b><span>总星数</span></div>
+        <div class="ov"><b>{{bossStar}}</b><span>王棋星数</span></div>
+        <div class="ov"><b>{{mobStar}}</b><span>棋子星数</span></div>
+        <div class="ov wide"><b>{{maxFloor}}</b><span>最高记录</span></div>
+        <div class="ov"><b>{{battleNum}}</b><span>挑战次数</span></div>
+      </div>
+
+      <div class="floor-list">
+        {{each floors val idx}}
+        <div class="floor">
+          <div class="floor-top">
+            <div class="floor-index">{{idx + 1}}</div>
+            <div class="floor-title-box">
+              <div class="floor-title">{{val.name}}</div>
+              <div class="floor-desc">
+                {{if val.time}}挑战时间 {{val.time}} · {{/if}}
+                王棋 {{val.bossStar}}★ · 棋子 {{val.mobStar}}★ · 合计 {{val.star}}/{{val.maxStar}}★
+              </div>
+            </div>
+            <div class="floor-stars">
+              {{set s = val.star || 0}}
+              {{each [1,2,3,4,5,6,7,8,9] i}}
+              {{if i <= val.maxStar}}<span class="{{if i <= s}}on{{/if}}">★</span>{{/if}}
+              {{/each}}
+            </div>
+          </div>
+
+          <div class="boss-section">
+            <div class="section-head">
+              <span>王棋本体</span>
+              <em>轮次 {{val.roundNum}}</em>
+            </div>
+            <div class="team-row">
+              {{each val.node1.avatars a}}
+              <div class="avatar rarity{{a.rarity}}">
+                {{if a.rank>0}}<i>{{a.rank}}魂</i>{{/if}}
+                {{if a.icon}}<img src="{{a.icon}}" />{{/if}}
+                <span>Lv.{{a.level}}</span>
+              </div>
+              {{/each}}
+            </div>
+            {{if val.buffName || val.buffDesc}}
+            <div class="buff">
+              {{if val.buffIcon}}<img src="{{val.buffIcon}}" />{{/if}}
+              <div><b>{{val.buffName}}</b>{{if val.buffDesc}}<p>{{val.buffDesc}}</p>{{/if}}</div>
+            </div>
+            {{/if}}
+          </div>
+
+          {{if val.mobs && val.mobs.length}}
+          <div class="chess-grid">
+            {{each val.mobs mob mIdx}}
+            <div class="chess-card">
+              <div class="chess-head">
+                <div class="chess-icon">
+                  {{if mob.icon}}<img src="{{mob.icon}}" />{{else}}<span>♟</span>{{/if}}
+                </div>
+                <div class="chess-info">
+                  <div class="chess-name">棋子{{mIdx + 1}} · {{mob.name}}</div>
+                  <div class="chess-meta">
+                    {{if mob.roundNum}}轮次 {{mob.roundNum}}{{/if}}
+                    {{if mob.isFast}} · 极速{{/if}}
+                  </div>
+                </div>
+                <div class="chess-star"><b>{{mob.star || 0}}</b><span>★</span></div>
+              </div>
+              {{if mob.avatars && mob.avatars.length}}
+              <div class="mini-team">
+                {{each mob.avatars a}}
+                <div class="mini-avatar rarity{{a.rarity}}">
+                  {{if a.rank>0}}<i>{{a.rank}}</i>{{/if}}
+                  {{if a.icon}}<img src="{{a.icon}}" />{{/if}}
+                  <span>{{a.level}}</span>
+                </div>
+                {{/each}}
+              </div>
+              {{else}}
+              <div class="empty-team">暂无棋子配队记录</div>
+              {{/if}}
             </div>
             {{/each}}
           </div>
+          {{/if}}
         </div>
-        {{if floor.node2 && floor.node2.avatars && floor.node2.avatars.length}}
-        <div class="node">
-          <div class="node-tag">下半</div>
-          <div class="node-score">{{floor.node2.score}}</div>
-          <div class="avatars">
-            {{each floor.node2.avatars a}}
-            <div class="avatar rarity{{a.rarity}}">
-              {{if a.icon}}<img src="{{a.icon}}"/>{{/if}}
-              <span class="lv">Lv{{a.level}}</span>
-            </div>
-            {{/each}}
-          </div>
-        </div>
-        {{/if}}
+        {{/each}}
       </div>
-    </div>
-    {{/each}}
 
-    <div class="copyright">Created By sr-apocalyptic-plugin · 人机代码</div>
+      <div class="copyright">Created By ayaka · ayaka-bot.cn</div>
+    </div>
   </div>
 </body>
 </html>

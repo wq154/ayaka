@@ -1,76 +1,15 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: #0d1117;
-  color: #e6edf3;
-}
-.container {
-  width: 760px;
-  padding: 24px;
-  background: linear-gradient(160deg, #11151c 0%, #181d27 100%);
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  border-bottom: 2px solid rgba(120, 160, 255, .25);
-}
-.title { font-size: 30px; font-weight: 700; color: #c9b8ff; letter-spacing: 2px; }
-.subtitle { font-size: 13px; color: #7d8590; letter-spacing: 3px; margin-top: 2px; }
-.uid {
-  font-size: 14px; color: #adbac7;
-  background: rgba(255,255,255,.06);
-  padding: 6px 12px; border-radius: 8px;
-}
-.summary {
-  display: flex; gap: 12px; margin: 18px 0 6px;
-}
-.sum-item {
-  flex: 1; text-align: center;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 12px; padding: 14px 0;
-}
-.sum-item .num { font-size: 28px; font-weight: 700; color: #ffd479; }
-.sum-item .label { font-size: 12px; color: #8b949e; margin-top: 4px; }
-.period { font-size: 12px; color: #7d8590; margin: 8px 2px 16px; }
-
-.floor {
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;
-}
-.floor-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 12px;
-}
-.floor-name { font-size: 17px; font-weight: 600; color: #e6edf3; }
-.stars .star { font-size: 18px; color: #3a4250; }
-.stars .star.on { color: #ffd479; }
-
-.nodes { display: flex; gap: 14px; }
-.node {
-  flex: 1; background: rgba(0,0,0,.25);
-  border-radius: 10px; padding: 10px;
-}
-.node-tag { font-size: 12px; color: #8b949e; }
-.node-score { font-size: 22px; font-weight: 700; color: #9ecbff; margin: 2px 0 8px; }
-.avatars { display: flex; flex-wrap: wrap; gap: 8px; }
-.avatar {
-  position: relative; width: 56px; height: 56px;
-  border-radius: 8px; overflow: hidden;
-  background: #222; border: 2px solid #555;
-}
-.avatar.rarity5 { border-color: #c9a86a; background: linear-gradient(180deg,#8a6d3b,#caa15b); }
-.avatar.rarity4 { border-color: #9d7fc7; background: linear-gradient(180deg,#6a4f8a,#9d7fc7); }
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
-.avatar .lv {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  font-size: 10px; text-align: center;
-  background: rgba(0,0,0,.6); color: #fff;
-}
-.copyright {
-  text-align: center; font-size: 11px; color: #5a626d;
-  margin-top: 10px; letter-spacing: 1px;
-}
+@font-face{font-family:tttgbnumber;src:url("../../../ji-plugin/resources/fonts/tttgbnumber.ttf")}
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}
+body{width:640px;background:transparent;color:#f7f1e5;font-family:PingFangSC-Medium,"PingFang SC","Microsoft YaHei",sans-serif;transform-origin:0 0}
+.container{width:640px;padding:14px;zoom:2;font-family:tttgbnumber,PingFangSC-Medium,"PingFang SC",sans-serif}
+.page{position:relative;overflow:hidden;border-radius:20px;padding:22px;background:linear-gradient(145deg,#2f2748 0%,#171b35 50%,#0b1020 100%);box-shadow:0 18px 50px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,255,255,.16)}
+.page:before{content:"";position:absolute;inset:4px;border-radius:18px;border:2px solid rgba(255,255,255,.16);pointer-events:none;z-index:1}.page:after{content:"AYAKA";position:absolute;right:-8px;bottom:-25px;font-size:92px;font-weight:900;letter-spacing:8px;color:rgba(255,255,255,.035)}
+.bg-glow{position:absolute;border-radius:50%;filter:blur(18px);opacity:.45}.glow-1{width:210px;height:210px;background:#ffd56d;left:-80px;top:-90px}.glow-2{width:260px;height:260px;background:#7a67ff;right:-105px;top:-95px}.grid-mask{position:absolute;inset:0;opacity:.12;background-image:linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.35) 1px,transparent 1px);background-size:34px 34px}
+.hero,.overview,.floor-list,.copyright{position:relative;z-index:2}.hero{display:flex;justify-content:space-between;gap:18px;align-items:stretch}.tag{font-size:12px;letter-spacing:2px;color:rgba(255,224,150,.78);margin-bottom:8px}.title{font-size:30px;font-weight:900;letter-spacing:2px;color:#fff5d7;text-shadow:0 4px 18px rgba(255,213,109,.22)}.meta{margin-top:8px;font-size:14px;color:rgba(255,255,255,.72)}
+.score-card{width:154px;flex:none;border-radius:18px;padding:14px;text-align:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 0 26px rgba(255,213,109,.08)}.score-label{font-size:11px;color:rgba(255,255,255,.55);letter-spacing:1px}.score b{font-size:42px;line-height:1;color:#ffd56d}.score span{font-size:20px;color:rgba(255,255,255,.70)}.score-sub{margin-top:5px;font-size:12px;color:rgba(255,255,255,.62)}
+.overview{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:18px 0}.ov{min-height:64px;border-radius:14px;padding:11px 10px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.10);overflow:hidden}.ov b{display:block;font-size:23px;line-height:1.05;color:#ffd56d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ov span{display:block;margin-top:6px;font-size:12px;color:rgba(255,255,255,.60)}.ov.wide{grid-column:span 2}.ov.wide b{font-size:16px;margin-top:3px}
+.floor{margin-top:14px;padding:15px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.085),rgba(255,255,255,.035));border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 22px rgba(0,0,0,.24)}.floor-top{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.10)}.floor-index{width:42px;height:42px;border-radius:13px;text-align:center;line-height:42px;font-size:25px;font-weight:900;color:#1b1725;background:linear-gradient(135deg,#ffe59e,#f1b457)}.floor-title-box{flex:1;min-width:0}.floor-title{font-size:20px;font-weight:850;color:#fff8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.floor-desc{margin-top:4px;font-size:12px;color:rgba(255,255,255,.60)}.floor-stars{width:92px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0}.floor-stars span{font-size:18px;color:rgba(255,255,255,.22);line-height:18px}.floor-stars span.on{color:#ffd56d;text-shadow:0 0 8px rgba(255,213,109,.35)}
+.boss-section{margin-top:12px;padding:12px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.section-head span{font-size:14px;color:#ffd56d;font-weight:850}.section-head em{font-style:normal;font-size:12px;color:rgba(255,255,255,.58)}.team-row{display:flex;flex-wrap:wrap;gap:8px}.avatar{position:relative;overflow:hidden;width:58px;height:76px;border-radius:9px;background:rgba(255,255,255,.12);box-shadow:0 4px 12px rgba(0,0,0,.24)}.avatar.rarity5{background:linear-gradient(180deg,#c6964e,#634122)}.avatar.rarity4{background:linear-gradient(180deg,#9b78d8,#423162)}.avatar img{width:58px;height:58px;object-fit:cover}.avatar span{position:absolute;left:0;right:0;bottom:0;height:18px;line-height:18px;text-align:center;font-size:12px;color:#202124;background:#e9e5dc}.avatar i{position:absolute;right:0;top:0;z-index:3;padding:1px 4px;border-radius:0 0 0 6px;background:#ff7a45;font-size:11px;font-style:normal;color:#fff}
+.buff{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center;margin-top:10px;padding:8px;border-radius:12px;background:rgba(255,255,255,.06)}.buff img{width:32px;height:32px;object-fit:contain}.buff b{font-size:12px;color:#ffd56d}.buff p{font-size:11px;line-height:1.35;color:rgba(255,255,255,.62)}
+.chess-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}.chess-card{padding:10px 12px;border-radius:15px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.08)}.chess-head{display:flex;align-items:center;gap:8px}.chess-icon{width:42px;height:42px;flex:none;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center}.chess-icon img{width:42px;height:42px;object-fit:cover}.chess-icon span{font-size:24px;color:#ffd56d}.chess-info{flex:1;min-width:0}.chess-name{font-size:13px;font-weight:850;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chess-meta{margin-top:3px;font-size:11px;color:rgba(255,255,255,.55)}.chess-star{width:36px;text-align:right}.chess-star b{font-size:24px;color:#ffd56d}.chess-star span{font-size:13px;color:#ffd56d}.mini-team{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.mini-avatar{position:relative;width:40px;height:52px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,.12)}.mini-avatar.rarity5{background:linear-gradient(180deg,#c6964e,#634122)}.mini-avatar.rarity4{background:linear-gradient(180deg,#9b78d8,#423162)}.mini-avatar img{width:40px;height:40px;object-fit:cover}.mini-avatar span{position:absolute;left:0;right:0;bottom:0;height:13px;line-height:13px;text-align:center;font-size:10px;color:#202124;background:#e9e5dc}.mini-avatar i{position:absolute;right:0;top:0;z-index:3;padding:0 3px;border-radius:0 0 0 5px;background:#ff7a45;font-size:9px;font-style:normal;color:#fff}.empty-team{margin-top:9px;font-size:12px;color:rgba(255,255,255,.42)}
+.copyright{margin-top:16px;padding-top:12px;text-align:center;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.42);letter-spacing:1px}
