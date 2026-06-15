@@ -10,8 +10,8 @@
   <div class="container">
     <div class="header">
       <div class="title-box">
-        <div class="title">异相仲裁 · 末日幻影</div>
-        <div class="subtitle">Apocalyptic Shadow</div>
+        <div class="title">异相仲裁 · 王棋</div>
+        <div class="subtitle">Divergent Arbitration</div>
       </div>
       <div class="uid">UID {{uid}}</div>
     </div>
@@ -19,11 +19,11 @@
     <div class="summary">
       <div class="sum-item">
         <div class="num">{{totalStar}}</div>
-        <div class="label">总星数</div>
+        <div class="label">王棋星数</div>
       </div>
       <div class="sum-item">
-        <div class="num">{{maxFloor}}</div>
-        <div class="label">最深抵达</div>
+        <div class="num">{{mobStar}}</div>
+        <div class="label">骑士星数</div>
       </div>
       <div class="sum-item">
         <div class="num">{{battleNum}}</div>
@@ -56,6 +56,7 @@
             {{/each}}
           </div>
         </div>
+        {{if floor.node2 && floor.node2.avatars && floor.node2.avatars.length}}
         <div class="node">
           <div class="node-tag">下半</div>
           <div class="node-score">{{floor.node2.score}}</div>
@@ -68,6 +69,7 @@
             {{/each}}
           </div>
         </div>
+        {{/if}}
       </div>
     </div>
     {{/each}}
