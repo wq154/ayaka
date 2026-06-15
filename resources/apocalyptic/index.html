@@ -86,7 +86,7 @@
                 <div class="chess-info">
                   <div class="chess-name">棋子{{mIdx + 1}} · {{mob.name}}</div>
                   <div class="chess-meta">
-                    {{if mob.roundNum !== undefined && mob.roundNum !== null && mob.roundNum !== ""}}轮次 {{mob.roundNum}}{{/if}}
+                    {{mob.roundText}}
                     {{if mob.isFast}} · 极速{{/if}}
                   </div>
                 </div>
