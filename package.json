@@ -1,8 +1,8 @@
 {
   "name": "sr-apocalyptic-plugin",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "author": "人机代码",
-  "description": "TRSS-Yunzai 崩坏：星穹铁道异相仲裁（王棋）战绩查询插件",
+  "description": "TRSS-Yunzai 崩坏：星穹铁道混沌回忆/虚构叙事/末日幻影三队动态战绩与异相仲裁（王棋/王琪）查询插件（脱敏发布版）",
   "type": "module",
   "dependencies": {
     "md5": "^2.3.0",
@@ -14,6 +14,14 @@
     "Yunzai",
     "StarRail",
     "异相仲裁",
-    "王棋"
+    "王棋",
+    "混沌回忆",
+    "虚构叙事",
+    "末日幻影",
+    "三队",
+    "王琪",
+    "忘却之庭",
+    "脱敏发布",
+    "动态节点"
   ]
 }

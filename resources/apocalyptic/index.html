@@ -13,24 +13,42 @@
       <div class="grid-mask"></div>
 
       <div class="hero">
-        <div>
+        <div class="hero-main">
           <div class="tag">STAR RAIL · CHALLENGE PEAK</div>
           <div class="title">异相仲裁挑战回顾</div>
-          <div class="meta">UID {{uid}} · {{modeName}}{{if scheduleTime}} · {{scheduleTime}}{{/if}}</div>
-        </div>
-        <div class="score-card">
-          <div class="score-label">TOTAL STAR</div>
-          <div class="score"><b>{{totalStar}}</b><span>/{{maxStar}}</span></div>
-          <div class="score-sub">王棋 {{bossStar}} · 棋子 {{mobStar}}</div>
+          <div class="meta">UID {{uid}} · {{modeName}}</div>
+          {{if scheduleTime}}<div class="period">统计周期：{{scheduleTime}}</div>{{/if}}
         </div>
       </div>
 
-      <div class="overview">
-        <div class="ov"><b>{{totalStar}}</b><span>总星数</span></div>
-        <div class="ov"><b>{{bossStar}}</b><span>王棋星数</span></div>
-        <div class="ov"><b>{{mobStar}}</b><span>棋子星数</span></div>
-        <div class="ov wide"><b>{{maxFloor}}</b><span>最高记录</span></div>
-        <div class="ov"><b>{{battleNum}}</b><span>挑战次数</span></div>
+      <div class="overview mhy-overview">
+        <div class="ov star-ov">
+          <span class="ov-title">获得星数</span>
+          <div class="mhy-star-line">
+            <span class="mhy-star-stack single">
+              <img class="mhy-star gold" src="{{_res_path}}sr-abyss/img/mhy-tower-star.png" />
+            </span>
+            <b>{{totalStar}}</b><em>/{{maxStar}}</em>
+            {{if hasColorMedal}}
+            <span class="peak-color-badge overview-badge">
+              <img src="{{colorMedalIcon || _res_path + 'sr-abyss/img/star-rainbow.svg'}}" />
+            </span>
+            {{/if}}
+          </div>
+          <div class="star-sub">王棋 {{bossStar}} · 骑士 {{mobStar}}</div>
+        </div>
+        <div class="ov stat-ov">
+          <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-score.svg" />
+          <div><b>{{metricTotalText}}</b><span>{{metricTotalLabel}}</span></div>
+        </div>
+        <div class="ov stat-ov">
+          <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-battle.svg" />
+          <div><b>{{battleNum}}</b><span>挑战次数</span></div>
+        </div>
+        <div class="ov stat-ov floor-ov">
+          <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-floor.svg" />
+          <div><b>{{maxFloorText || maxFloor}}</b><span>最高记录</span></div>
+        </div>
       </div>
 
       <div class="floor-list">
@@ -39,7 +57,7 @@
           <div class="floor-top">
             <div class="floor-index">{{idx + 1}}</div>
             <div class="floor-title-box">
-              <div class="floor-title">{{val.name}}</div>
+              <div class="floor-title"><span>{{val.name}}</span>{{if val.hasColorMedal}}<span class="peak-color-badge floor-title-badge"><img src="{{val.colorMedalIcon || _res_path + 'sr-abyss/img/star-rainbow.svg'}}" /></span>{{/if}}</div>
               <div class="floor-desc">
                 {{if val.time}}挑战时间 {{val.time}} · {{/if}}
                 王棋 {{val.bossStar}}★ · 棋子 {{val.mobStar}}★ · 合计 {{val.star}}/{{val.maxStar}}★

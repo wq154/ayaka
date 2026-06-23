@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8" />
+  <link rel="shortcut icon" href="#" />
+  <link rel="stylesheet" href="{{_res_path}}sr-abyss/index.css"/>
+</head>
+<body {{@sys.scale}}>
+  <div class="container" id="container">
+    <div class="page mode-{{modeKey}}">
+      <div class="bg-glow glow-1"></div>
+      <div class="bg-glow glow-2"></div>
+      <div class="grid-mask"></div>
+
+      <div class="hero">
+        <div class="hero-main">
+          <div class="tag">{{tag}}</div>
+          <div class="title">{{title}}</div>
+          <div class="meta">UID {{uid}} · {{modeName}}</div>
+          {{if scheduleTime}}<div class="period">统计周期：{{scheduleTime}}</div>{{/if}}
+        </div>
+      </div>
+
+      <div class="overview mhy-overview">
+        <div class="ov star-ov">
+          <span class="ov-title">获得星数</span>
+          <div class="mhy-star-line split">
+            <span class="star-label">普通</span>
+            <span class="mhy-star-stack single">
+              <img class="mhy-star gold" src="{{_res_path}}sr-abyss/img/mhy-tower-star.png" />
+            </span>
+            <b>{{totalStar}}</b><em>/{{maxStar}}</em>
+            {{if hasColoredStar}}
+            <span class="colored-star-block icon-only">
+              <img class="colored-star-icon" src="{{_res_path}}sr-abyss/img/star-rainbow.svg" />
+            </span>
+            {{/if}}
+          </div>
+        </div>
+        <div class="ov stat-ov">
+          <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-score.svg" />
+          <div><b>{{metricTotalText}}</b><span>{{metricTotalLabel}}</span></div>
+        </div>
+        <div class="ov stat-ov">
+          <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-battle.svg" />
+          <div><b>{{battleNum}}</b><span>挑战次数</span></div>
+        </div>
+        <div class="ov stat-ov floor-ov">
+          <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-floor.svg" />
+          <div><b>{{maxFloor}}</b><span>最高关卡</span></div>
+        </div>
+      </div>
+
+      <div class="floor-list">
+        {{each floors val idx}}
+        <div class="floor node-count-{{val.nodeCount}}">
+          <div class="floor-top">
+            <div class="floor-index">{{val.floorIndex}}</div>
+            <div class="floor-title-box">
+              <div class="floor-title">{{val.name}}</div>
+              <div class="floor-desc">
+                {{if val.time}}{{val.time}} · {{/if}}
+                {{if mainMetric === '积分'}}总分{{else}}使用轮次{{/if}} {{val.metricValue}} · 星数 {{val.star}}/{{val.maxStar}}★
+              </div>
+            </div>
+            <div class="floor-stars">
+              {{set gold = val.star || 0}}
+              {{each [1,2,3] i}}
+              {{if i <= gold}}
+              <span class="on">★</span>
+              {{else}}
+              <span>★</span>
+              {{/if}}
+              {{/each}}
+            </div>
+          </div>
+
+          <div class="node-list">
+            {{each val.nodes node nIdx}}
+            <div class="node-section">
+              <div class="section-head">
+                <span>{{node.label}}</span>
+                <em>{{if node.metric}}{{node.metric}}{{else}}星数 {{val.star}}/{{val.maxStar}}★{{/if}}</em>
+              </div>
+              <div class="team-row">
+                {{each node.avatars a}}
+                <div class="avatar rarity{{a.rarity}}">
+                  {{if a.rank>0}}<i>{{a.rank}}魂</i>{{/if}}
+                  {{if a.icon}}<img src="{{a.icon}}" />{{/if}}
+                  <span>Lv.{{a.level}}</span>
+                </div>
+                {{/each}}
+                {{if !node.avatars || node.avatars.length === 0}}
+                <div class="empty-team">暂无配队记录</div>
+                {{/if}}
+              </div>
+              {{if node.buffName || node.buffDesc}}
+              <div class="buff">
+                {{if node.buffIcon}}<img src="{{node.buffIcon}}" />{{/if}}
+                <div><b>{{node.buffName || '关卡增益'}}</b>{{if node.buffDesc}}<p>{{node.buffDesc}}</p>{{/if}}</div>
+              </div>
+              {{/if}}
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{/each}}
+      </div>
+
+      <div class="copyright">by:trss-yunzai&ayaka · sr-apocalyptic-plugin</div>
+    </div>
+  </div>
+</body>
+</html>

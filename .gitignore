@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# local runtime data / privacy-sensitive debug dumps
+data/
+logs/
+*.log
+
+# local backups
+*.bak
+*.bak_*
+*.bak-*
+apps/backup/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

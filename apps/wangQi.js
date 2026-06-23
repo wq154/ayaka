@@ -1,4 +1,5 @@
 import plugin from '../../../lib/plugins/plugin.js'
+import { segment } from 'oicq'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import lodash from 'lodash'
@@ -17,10 +18,10 @@ export class WangQi extends plugin {
       name: '星铁异相仲裁',
       dsc: '查询崩坏：星穹铁道 异相仲裁（王棋）战绩',
       event: 'message',
-      priority: 800,
+      priority: -999999,
       rule: [
         {
-          reg: '^(\\*|＊|#?星铁)?(王琪|王棋|异相仲裁)(上期|历史)?$',
+          reg: '^(?:(?:\\*|＊)|#?星铁|#)?\\s*(?:王琪|王棋|异相仲裁)\\s*(?:(?:上期|历史)\\s*)?(?:[+＋]?\\s*(?:UID|uid)?\\s*[1-9]\\d{8,9}\\s*)?(?:(?:上期|历史)\\s*)?$',
           fnc: 'arbitration'
         }
       ]
@@ -32,23 +33,30 @@ export class WangQi extends plugin {
       e.isSr = true
       e.game = 'sr'
 
-      // 直接复用 ji-plugin/末日幻影同款 MysInfo 链路，含 CK 匹配、device_fp、验证码 handler
-      const uid = await MysInfo.getUid(e)
-      if (!uid) return false
+      const rawMsg = e.msg || ''
+      e.msg = this.normalizeQueryMsg(rawMsg)
+
+      // 直接复用 ji-plugin/末日幻影同款 MysInfo 链路，含 CK 匹配、device_fp、验证码 handler。
+      // 先吃掉消息里显式写的 UID，避免官方 QQBot openid 场景下被绑定信息影响。
+      const uid = await this.getQueryUid(e)
+      if (!uid) return true
       e.uid = uid
 
       const ck = await MysInfo.checkUidBing(uid, 'sr')
-      if (!ck) return false
+      if (!ck) {
+        await this.replyNeedCk(e, uid)
+        return true
+      }
 
       const isHistory = /(上期|历史)/.test(e.msg)
       let data = await this.getChallengePeak(e, isHistory)
 
       if (!data) {
-        await e.reply('未获取到异相仲裁数据，可能未开启、战绩未公开或 CK 不可用~')
+        await e.reply(['未获取到异相仲裁数据，可能未开启、战绩未公开或 CK 不可用~', this.makeButtons()])
         return true
       }
       if (data.exists_data === false || data.has_data === false) {
-        await e.reply('当前账号暂无异相仲裁战绩哦~')
+        await e.reply(['当前账号暂无异相仲裁战绩哦~', this.makeButtons()])
         return true
       }
 
@@ -58,9 +66,65 @@ export class WangQi extends plugin {
     } catch (err) {
       logger.error('[异相仲裁] 查询异常')
       logger.error(err)
-      await e.reply(`异相仲裁查询失败：${err.message || err}`)
+      await e.reply([`异相仲裁查询失败：${err.message || err}`, this.makeButtons()])
       return true
     }
+  }
+
+  normalizeQueryMsg (msg = '') {
+    return String(msg || '')
+      .replace(/[+＋]\s*(?=(?:UID|uid)?\s*[1-9]\d{8,9})/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  cleanCommandText (msg = '') {
+    return String(msg || '')
+      .replace(/\[CQ:(?:reply|at),[^\]]+\]/g, '')
+      .replace(/<qqbot-at-[^>]+>/g, '')
+      .trim()
+  }
+
+  getUidFromMsg (msg = '') {
+    const m = this.cleanCommandText(msg).match(/(?:UID|uid)?\s*([1-9]\d{8,9})/)
+    return m?.[1] || ''
+  }
+
+
+  async replyNeedCk (e, uid) {
+    await e.reply([`UID:${uid} 暂无可用 Cookie，请先【#扫码登录】或【#刷新ck】后再试~`, segment.button([
+      { text: '扫码登录', callback: '#扫码登录' },
+      { text: '刷新Cookie', callback: '#刷新ck' }
+    ])])
+  }
+
+  async getQueryUid (e) {
+    const msgUid = this.getUidFromMsg(e.msg)
+    if (msgUid) return msgUid
+
+    let at = e.at || ''
+    if (!at && Array.isArray(e.message)) {
+      const seg = e.message.find(i => i?.type === 'at' && String(i.qq || i.data?.qq || '') !== String(e.self_id) && String(i.qq || i.data?.qq || '') !== 'all')
+      at = String(seg?.qq || seg?.data?.qq || '')
+    }
+    if (at) e.at = at
+
+    return await MysInfo.getUid(e)
+  }
+
+  toBool (val) {
+    if (val === true) return true
+    if (val === false || val === undefined || val === null || val === '') return false
+    if (typeof val === 'number') return val > 0
+    const text = String(val).trim().toLowerCase()
+    return ['1', 'true', 'yes', 'y', 'on'].includes(text)
+  }
+
+  normalizeIcon (icon = '') {
+    if (!icon) return ''
+    if (typeof icon === 'string') return icon
+    if (typeof icon === 'object') return icon.icon || icon.image || icon.url || icon.src || ''
+    return ''
   }
 
   /**
@@ -96,7 +160,6 @@ export class WangQi extends plugin {
 
       if (json?.retcode === 0) {
         logger.mark(`[异相仲裁] 接口命中：${apiName} ${JSON.stringify(params)}`)
-        this.logDataShape(json.data)
         return json.data
       }
       logger.error(`[异相仲裁] ${apiName} ${JSON.stringify(params)} retcode=${json?.retcode} ${json?.message}`)
@@ -104,20 +167,7 @@ export class WangQi extends plugin {
     return false
   }
 
-  logDataShape (data = {}) {
-    try {
-      const records = data.challenge_peak_records || data.records || data.all_floor_detail || []
-      const first = records[0] || {}
-      const record = first.boss_record || first.record || first
-      logger.mark(`[异相仲裁数据] root=${Object.keys(data).join(',')}`)
-      logger.mark(`[异相仲裁数据] first=${Object.keys(first).join(',')}`)
-      logger.mark(`[异相仲裁数据] record=${Object.keys(record).join(',')}`)
-      logger.mark(`[异相仲裁数据] mob_info=${Object.keys(first.mob_infos?.[0] || {}).join(',')}`)
-      logger.mark(`[异相仲裁数据] mob_record=${Object.keys(first.mob_records?.[0] || {}).join(',')}`)
-    } catch (e) {}
-  }
 
-  /** 整理异相仲裁渲染数据 */
   dealData (data, uid, isHistory) {
     let records = data.challenge_peak_records || data.records || data.all_floor_detail || []
     let first = records[0] || {}
@@ -144,6 +194,12 @@ export class WangQi extends plugin {
       let score1 = node1.score ?? node1.round_num ?? record.score ?? record.round_num ?? '-'
       let score2 = mobStarSum || 0
       let totalScore = record.score ?? r.score ?? ((Number(score1) || 0) + (Number(score2) || 0))
+      const hasFinishColorMedalField = record.finish_color_medal !== undefined || r.finish_color_medal !== undefined
+      const finishColorMedal = this.toBool(record.finish_color_medal ?? r.finish_color_medal ?? false)
+      const rankIconType = record.challenge_peak_rank_icon_type ?? r.challenge_peak_rank_icon_type ?? ''
+      const colorMedalIcon = this.normalizeIcon(record.challenge_peak_rank_icon ?? r.challenge_peak_rank_icon ?? '')
+      // 有 finish_color_medal 时以它为准；没有该字段时再用 rank_icon 兜底，避免普通战绩也误显示彩框。
+      const hasColorMedal = hasFinishColorMedalField ? finishColorMedal : (!!colorMedalIcon && Number(rankIconType) > 0)
 
       return {
         name: info.name_mi18n || info.hard_mode_name_mi18n || info.name || r.name || `王棋 ${idx + 1}`,
@@ -152,6 +208,10 @@ export class WangQi extends plugin {
         bossStar,
         mobStar: mobStarSum,
         maxStar,
+        finishColorMedal,
+        hasColorMedal,
+        rankIconType,
+        colorMedalIcon,
         roundNum: record.round_num ?? node1.round_num ?? '-',
         score: totalScore ?? '-',
         time: this.fmtTime(time),
@@ -190,17 +250,27 @@ export class WangQi extends plugin {
     let maxFloor = bestFloor.name
       ? `${bestFloor.name} ${bestFloor.star}/${bestFloor.maxStar}★`
       : '-'
+    let metricTotal = Number(bestFloor.roundNum) || 0
+    let metricTotalText = metricTotal ? String(metricTotal) : '-'
+    let scheduleTime = this.getScheduleTime(data, group)
+    const colorMedalFloor = floors.find(f => f.hasColorMedal) || {}
+    const hasColorMedal = !!colorMedalFloor.hasColorMedal
+    const colorMedalIcon = colorMedalFloor.colorMedalIcon || ''
 
     return {
       uid,
       modeName: isHistory ? '历史战绩' : '本期战绩',
       title: '异相仲裁挑战回顾',
-      scheduleTime: group.game_version
-        ? `${group.name_mi18n || group.name || '异相仲裁'} · ${group.game_version}`
-        : (group.name_mi18n || group.name || data.schedule_name || ''),
+      scheduleTime,
       maxFloor,
+      maxFloorText: bestFloor.name ? `${this.shortText(bestFloor.name, 7)} ${bestFloor.star}/${bestFloor.maxStar}★` : '-',
       battleNum: lodash.sumBy(records, (r) => Number(r.battle_num) || 0) || brief.total_battle_num || brief.battle_num || data.battle_num || '-',
+      metricTotal,
+      metricTotalText,
+      metricTotalLabel: '使用轮次',
       hasData: !!floors.length,
+      hasColorMedal,
+      colorMedalIcon,
       bossStar,
       totalStar,
       mobStar,
@@ -289,21 +359,72 @@ export class WangQi extends plugin {
     }))
   }
 
+  shortText (text = '', max = 18) {
+    text = String(text || '')
+    if (text.length <= max) return text
+    return `${text.slice(0, max)}…`
+  }
+
+  getScheduleTime (data = {}, group = {}) {
+    group = group || {}
+    const begin = this.fmtDateOnly(group.begin_time || data.begin_time || data.start_time)
+    const end = this.fmtDateOnly(group.end_time || data.end_time || data.finish_time)
+    const period = begin && end ? `${begin} - ${end}` : ''
+    const name = group.name_mi18n || group.name || data.schedule_name || '异相仲裁'
+    if (period) return `${name} · ${period}`
+    if (group.game_version) return `${name} · ${group.game_version}`
+    return name
+  }
+
+  fmtDateOnly (t = {}) {
+    if (!t) return ''
+    if (typeof t === 'number') {
+      const d = new Date(t * (t < 10000000000 ? 1000 : 1))
+      if (!Number.isNaN(d.getTime())) return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+      return ''
+    }
+    if (typeof t === 'string') return t.replace(/-/g, '.')
+    if (!t.year && !t.month && !t.day) return ''
+    return `${t.year}.${String(t.month || 0).padStart(2, '0')}.${String(t.day || 0).padStart(2, '0')}`
+  }
+
   fmtTime (t = {}) {
     if (!t || !t.year) return ''
     let p = (n) => String(n || 0).padStart(2, '0')
     return `${t.month}/${t.day} ${p(t.hour)}:${p(t.minute)}`
   }
 
+  makeBtn (text, input) {
+    // 按“面板”那种按钮消息写法：点击后把指令填入并直接发送
+    return {
+      text,
+      input,
+      send: true,
+      clicked_text: input
+    }
+  }
+
+  makeButtons () {
+    // 五分钟内被动回复按钮：随 e.reply 发出，不走主动消息额度。按钮保持少量常用入口。
+    return segment.button([
+      [
+        this.makeBtn('混沌', '*深渊'),
+        this.makeBtn('虚构', '*虚构叙事'),
+        this.makeBtn('末日', '*末日幻影'),
+        this.makeBtn('王棋', '*王棋')
+      ]
+    ])
+  }
+
   async render (e, data) {
     let tplFile = path.join(__dirname, '../resources/apocalyptic/index.html').replace(/\\/g, '/')
     let img = await this.renderImg(e, tplFile, data)
     if (img) {
-      await e.reply(img)
+      await e.reply([img, this.makeButtons()])
     } else {
       let txt = [`星铁异相仲裁 UID:${data.uid}`, `${data.modeName} ${data.scheduleTime || ''}`, `王棋星数：${data.totalStar}，骑士星数：${data.mobStar}`]
       data.floors.forEach((f) => txt.push(`${f.name}  ★${f.star}  轮次:${f.roundNum}`))
-      await e.reply(txt.join('\n'))
+      await e.reply([txt.join('\n'), this.makeButtons()])
     }
   }
 
@@ -313,7 +434,7 @@ export class WangQi extends plugin {
       let base = path.join(__dirname, '../resources/').replace(/\\/g, '/')
       return await renderer.screenshot('sr-apocalyptic', {
         tplFile,
-        saveId: `${data.uid}-${Date.now()}`,
+        saveId: `wangqi-${Date.now()}`,
         imgType: 'png',
         _res_path: base,
         pluResPath: base,
