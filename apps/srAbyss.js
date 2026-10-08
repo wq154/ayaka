@@ -701,7 +701,7 @@ export class SrAbyss extends plugin {
     data.floors.forEach((floor) => {
       txt.push(`${floor.name} ★${floor.star}/${floor.maxStar}${floor.coloredMax ? ` + 彩星 ${floor.coloredStar}/${floor.coloredMax}` : ''} ${data.mainMetric === '积分' ? '总分' : '使用轮次'}:${floor.metricValue}`)
       floor.nodes.forEach((node) => txt.push(`  ${node.label}：${node.avatars.map(a => a.name || a.id).filter(Boolean).join(' / ') || '无配队'}`))
-      const cones = floor.nodes.flatMap(node => (node.avatars || []).filter(a => a.equip?.name).map(a => `${a.name || a.id}-${a.equip.name}${a.equip.affix ? ` R${a.equip.affix}` : ''}`))
+      const cones = floor.nodes.flatMap(node => (node.avatars || []).filter(a => a.equip?.name).map(a => `${a.name || a.id}-${a.equip.name}${a.equip.affix ? ` 叠影${a.equip.affix}` : ''}`))
       if (cones.length) txt.push(`  光锥：${cones.join(' / ')}`)
     })
     await e.reply([txt.join('\n'), this.makeButtons(data.modeKey)])

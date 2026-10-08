@@ -30,14 +30,13 @@ body{width:640px;background:transparent;color:#f7f1e5;font-family:PingFangSC-Med
 .colored-star-block.with-count .colored-star-icon{width:22px;height:22px}
 .colored-star-block .colored-count{position:relative;z-index:2;font-size:15px;line-height:1;color:#ffe9a8}
 .colored-star-block.off{filter:grayscale(.92);opacity:.5}
-.star-sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.58);letter-spacing:.5px}
 .floor-stars span.colored{background-image:url("./img/star-rainbow.svg");opacity:.24;filter:grayscale(.92)}
 .floor-stars span.colored.on{background-image:url("./img/star-rainbow.svg");opacity:1;filter:drop-shadow(0 0 6px rgba(255,120,255,.55))}
 .floor-stars span.colored{margin-left:2px}
 
-/* ===== 角色下方显示光锥（武器）：头像 + Lv + 光锥图标/叠影 ===== */
-.avatar.has-cone{height:98px}
-.avatar.has-cone>span{bottom:22px}
-.avatar .cone{position:absolute;left:0;right:0;bottom:0;height:22px;display:flex;align-items:center;justify-content:center;gap:3px;background:rgba(10,8,22,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);z-index:2}
-.avatar .cone img{width:16px;height:16px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.28)}
-.avatar .cone em{font-style:normal;font-size:10px;line-height:1;color:#ffe6a8}
+/* ===== 角色下方显示光锥（武器）：图放大，叠影数字像星魂那样贴在图标右上角 ===== */
+.avatar.has-cone{height:122px}
+.avatar.has-cone>span{bottom:46px}
+.avatar .cone{position:absolute;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;justify-content:center;background:rgba(10,8,22,.80);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);z-index:2}
+.avatar .cone-img{position:relative;width:42px;height:42px;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.32),0 2px 6px rgba(0,0,0,.38)}
+.avatar .cone-img img{display:block;width:42px;height:42px;object-fit:cover}

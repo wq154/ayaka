@@ -37,9 +37,6 @@
             </span>
             {{/if}}
           </div>
-          {{if hasColoredStar}}
-          <div class="star-sub">彩星（棱彩星）{{totalColoredStar}}/{{coloredMax}} · {{if coloredFull}}已达成{{else}}未达成{{/if}}</div>
-          {{/if}}
         </div>
         <div class="ov stat-ov">
           <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-score.svg" />
@@ -92,8 +89,10 @@
                   <span>Lv.{{a.level}}</span>
                   {{if a.equip}}
                   <div class="cone" title="{{a.equip.name}}">
-                    {{if a.equip.icon}}<img src="{{a.equip.icon}}" />{{/if}}
-                    <em>{{if a.equip.affix}}R{{a.equip.affix}}{{else}}Lv.{{a.equip.level}}{{/if}}</em>
+                    <div class="cone-img">
+                      {{if a.equip.icon}}<img src="{{a.equip.icon}}" />{{/if}}
+                      {{if a.equip.affix>0}}<i>{{a.equip.affix}}</i>{{/if}}
+                    </div>
                   </div>
                   {{/if}}
                 </div>
