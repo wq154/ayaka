@@ -23,3 +23,21 @@ body{width:640px;background:transparent;color:#f7f1e5;font-family:PingFangSC-Med
 /* split normal star and colored star, no overlap */
 .mhy-star-line.split{gap:3px;flex-wrap:nowrap}.mhy-star-line.split .star-label{font-size:12px;color:rgba(255,255,255,.58);margin-right:1px;white-space:nowrap}.mhy-star-line.split .mhy-star-stack.single{width:31px;height:34px}.mhy-star-line.split .mhy-star{width:31px;height:31px}.mhy-star-line.split .mhy-star.gold{top:1px;left:0;transform:rotate(-8deg)}
 .colored-star-block.icon-only{position:relative;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;margin-left:8px;padding:0;border-radius:11px;background:linear-gradient(135deg,#fff2a6,#ff7adf 42%,#7aa7ff 72%,#8dffdf);box-shadow:0 0 10px rgba(255,120,255,.30),inset 0 0 0 1px rgba(255,255,255,.36);white-space:nowrap;overflow:hidden;flex:none}.colored-star-block.icon-only:before{content:"";position:absolute;inset:2px;border-radius:9px;background:linear-gradient(145deg,rgba(48,33,70,.92),rgba(14,18,38,.92));z-index:0}.colored-star-block.icon-only:after{content:"";position:absolute;inset:0;border-radius:11px;background:linear-gradient(135deg,rgba(255,255,255,.38),transparent 40%,rgba(255,255,255,.18));opacity:.55;z-index:1;pointer-events:none}.colored-star-icon{position:relative;z-index:2;width:25px;height:25px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(255,120,255,.45)) drop-shadow(0 0 5px rgba(120,180,255,.30))}
+
+/* ===== 彩星（棱彩星）：只有真的拿到才点亮，没拿到显示成灰暗空位 ===== */
+.colored-star-block.with-count{position:relative;display:inline-flex;align-items:center;gap:4px;height:34px;margin-left:8px;padding:0 9px 0 6px;border-radius:11px;background:linear-gradient(135deg,#fff2a6,#ff7adf 42%,#7aa7ff 72%,#8dffdf);box-shadow:0 0 10px rgba(255,120,255,.30),inset 0 0 0 1px rgba(255,255,255,.36);white-space:nowrap;flex:none}
+.colored-star-block.with-count:before{content:"";position:absolute;inset:2px;border-radius:9px;background:linear-gradient(145deg,rgba(48,33,70,.92),rgba(14,18,38,.92));z-index:0}
+.colored-star-block.with-count .colored-star-icon{width:22px;height:22px}
+.colored-star-block .colored-count{position:relative;z-index:2;font-size:15px;line-height:1;color:#ffe9a8}
+.colored-star-block.off{filter:grayscale(.92);opacity:.5}
+.star-sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.58);letter-spacing:.5px}
+.floor-stars span.colored{background-image:url("./img/star-rainbow.svg");opacity:.24;filter:grayscale(.92)}
+.floor-stars span.colored.on{background-image:url("./img/star-rainbow.svg");opacity:1;filter:drop-shadow(0 0 6px rgba(255,120,255,.55))}
+.floor-stars span.colored{margin-left:2px}
+
+/* ===== 角色下方显示光锥（武器）：头像 + Lv + 光锥图标/叠影 ===== */
+.avatar.has-cone{height:98px}
+.avatar.has-cone>span{bottom:22px}
+.avatar .cone{position:absolute;left:0;right:0;bottom:0;height:22px;display:flex;align-items:center;justify-content:center;gap:3px;background:rgba(10,8,22,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);z-index:2}
+.avatar .cone img{width:16px;height:16px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.28)}
+.avatar .cone em{font-style:normal;font-size:10px;line-height:1;color:#ffe6a8}

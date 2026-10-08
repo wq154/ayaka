@@ -31,11 +31,15 @@
             </span>
             <b>{{totalStar}}</b><em>/{{maxStar}}</em>
             {{if hasColoredStar}}
-            <span class="colored-star-block icon-only">
+            <span class="colored-star-block with-count {{if coloredFull}}on{{else}}off{{/if}}">
               <img class="colored-star-icon" src="{{_res_path}}sr-abyss/img/star-rainbow.svg" />
+              <b class="colored-count">{{totalColoredStar}}/{{coloredMax}}</b>
             </span>
             {{/if}}
           </div>
+          {{if hasColoredStar}}
+          <div class="star-sub">彩星（棱彩星）{{totalColoredStar}}/{{coloredMax}} · {{if coloredFull}}已达成{{else}}未达成{{/if}}</div>
+          {{/if}}
         </div>
         <div class="ov stat-ov">
           <img class="stat-img" src="{{_res_path}}sr-abyss/img/icon-score.svg" />
@@ -60,18 +64,16 @@
               <div class="floor-title">{{val.name}}</div>
               <div class="floor-desc">
                 {{if val.time}}{{val.time}} · {{/if}}
-                {{if mainMetric === '积分'}}总分{{else}}使用轮次{{/if}} {{val.metricValue}} · 星数 {{val.star}}/{{val.maxStar}}★
+                {{if mainMetric === '积分'}}总分{{else}}使用轮次{{/if}} {{val.metricValue}} · 星数 {{val.star}}/{{val.maxStar}}★{{if val.coloredMax}} · 彩星 {{val.coloredStar}}/{{val.coloredMax}}{{/if}}
               </div>
             </div>
             <div class="floor-stars">
-              {{set gold = val.star || 0}}
-              {{each [1,2,3] i}}
-              {{if i <= gold}}
-              <span class="on">★</span>
-              {{else}}
-              <span>★</span>
-              {{/if}}
+              {{each val.starSlots s}}
+              <span class="{{s}}">★</span>
               {{/each}}
+              {{if val.coloredMax > 0}}
+              <span class="colored {{if val.coloredFull}}on{{/if}}" title="彩星（棱彩星）{{if val.coloredFull}}已达成{{else}}未达成{{/if}}">★</span>
+              {{/if}}
             </div>
           </div>
 
@@ -84,10 +86,16 @@
               </div>
               <div class="team-row">
                 {{each node.avatars a}}
-                <div class="avatar rarity{{a.rarity}}">
+                <div class="avatar rarity{{a.rarity}}{{if a.equip}} has-cone{{/if}}">
                   {{if a.rank>0}}<i>{{a.rank}}魂</i>{{/if}}
                   {{if a.icon}}<img src="{{a.icon}}" />{{/if}}
                   <span>Lv.{{a.level}}</span>
+                  {{if a.equip}}
+                  <div class="cone" title="{{a.equip.name}}">
+                    {{if a.equip.icon}}<img src="{{a.equip.icon}}" />{{/if}}
+                    <em>{{if a.equip.affix}}R{{a.equip.affix}}{{else}}Lv.{{a.equip.level}}{{/if}}</em>
+                  </div>
+                  {{/if}}
                 </div>
                 {{/each}}
                 {{if !node.avatars || node.avatars.length === 0}}

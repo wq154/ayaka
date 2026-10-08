@@ -106,6 +106,10 @@ export class SrAbyss extends plugin {
         return true
       }
 
+      // 角色光锥（武器）：深渊接口本身不返回，额外复用 ji-plugin 的角色列表接口补上。
+      // 失败不影响出图，最多是没有光锥那一行。
+      await this.attachLightCone(e, renderData)
+
       await this.render(e, renderData)
       return true
     } catch (err) {
@@ -229,12 +233,25 @@ export class SrAbyss extends plugin {
       // 米游社会返回 0分/0星 的占位层，不能只靠 score/star 判断。
       .filter(f => f.hasRecord !== false && f.hasTeam)
 
-    const floorMaxStar = lodash.sumBy(floors, (f) => Number(f.maxStar) || 0)
     const totalStar = Number(data.star_num ?? data.total_star ?? data.total_star_num ?? lodash.sumBy(floors, f => Number(f.star) || 0)) || 0
-    const totalColoredStar = Number(data.extra_star_num ?? lodash.sumBy(floors, f => Number(f.coloredStar) || 0)) || 0
-    const hasColoredStar = totalColoredStar > 0
+    const floorsColoredStar = lodash.sumBy(floors, f => Number(f.coloredStar) || 0)
+    const floorsColoredMax = lodash.sumBy(floors, f => Number(f.coloredMax) || 0)
+    // 彩星（棱彩星）：以“本层确实拿到”为准（层内 extra_star_num），
+    // 只有本期响应里完全看不到星启层记录时，才退回顶层 extra_star_num 兜底。
+    let coloredMax = floorsColoredMax
+    let totalColoredStar = floorsColoredStar
+    if (!floorsColoredMax) {
+      const flag = Number(data.extra_star_num ?? 0) || 0
+      if (flag > 0) {
+        coloredMax = 1
+        totalColoredStar = Math.min(flag, 1)
+      }
+    }
+    if (coloredMax && totalColoredStar > coloredMax) totalColoredStar = coloredMax
+    const hasColoredStar = coloredMax > 0
+    const coloredFull = hasColoredStar && totalColoredStar >= coloredMax
     let maxStar = Number(data.max_star_num ?? data.max_star ?? data.star_total ?? data.total_star_limit ?? 0) || 0
-    if (!maxStar) maxStar = Math.max(mode.totalFallback, floorMaxStar)
+    if (!maxStar) maxStar = Math.max(mode.totalFallback, lodash.sumBy(floors, f => Number(f.normalMax) || 0))
     if (maxStar < totalStar) maxStar = totalStar
 
     const bestFloor = this.getBestFloor(floors, mode)
@@ -256,6 +273,8 @@ export class SrAbyss extends plugin {
       totalStar,
       totalColoredStar,
       hasColoredStar,
+      coloredMax,
+      coloredFull,
       maxStar,
       maxFloor: data.max_floor || data.max_floor_name || bestFloor || '-',
       battleNum: data.battle_num || data.total_battle_num || '-',
@@ -280,12 +299,13 @@ export class SrAbyss extends plugin {
     const score = floor.allscore ?? floor.score ?? floor.total_score ?? (scoreSum || '')
     const firstTime = this.firstValue(nodes, 'time') || this.fmtTime(floor.challenge_time)
     const nodeCount = Math.max(nodes.length, 2)
-    const maxStar = Number(floor.max_star_num ?? floor.max_star ?? floor.total_star_num ?? 3) || 3
+    // 星启层上限 4（3 常规 + 1 棱彩），其它层 3；接口没给上限时以本层判定为准。
+    const maxStar = Number(floor.max_star_num ?? floor.max_star ?? 0) || starInfo.maxStar
     const hasRecord = floor.has_challenge_record ?? floor.has_record ?? floor.is_challenge ?? floor.is_unlock ?? true
-    // 混沌回忆接口节点通常没有 score/round 字段，节点头部不要显示“暂无指标”，用本层星数兜底。
+    // 混沌回忆接口节点通常没有 score/round 字段，节点头部不要显示“暂无指标”，用本层常规星数兜底。
     nodes = nodes.map(node => ({
       ...node,
-      metric: node.metric || `星数 ${star}/${maxStar}★`
+      metric: node.metric || `星数 ${star}/${starInfo.normalMax}★`
     }))
 
     return {
@@ -296,6 +316,10 @@ export class SrAbyss extends plugin {
       star,
       coloredStar,
       coloredMax: starInfo.coloredMax,
+      coloredFull: starInfo.coloredFull,
+      isTierce: starInfo.isTierce,
+      starSlots: starInfo.starSlots,
+      normalMax: starInfo.normalMax,
       totalDisplayStar,
       maxStar,
       nodeCount,
@@ -309,12 +333,36 @@ export class SrAbyss extends plugin {
   }
 
   formatStarInfo (floor = {}) {
-    // 星铁新三队接口已确认字段：star_num 为本层总星数，extra_star_num 为彩星数。
-    // 例如四星启模式：star_num=4, extra_star_num=1 => 常规 3★ + 彩星 1★。
-    const total = Number(floor.star_num ?? floor.star ?? floor.stars ?? floor.total_star_num ?? 0) || 0
+    // 星铁星数口径（接口实测 + 官方说明）：
+    // - 每层常规 3 星：star_num 为本层总星数（含棱彩），extra_star_num 为已获得的棱彩星。
+    // - 只有最高难度层会开「星启模式」（混沌其十二 / 虚构其四 / 末日难度04），该层多 1 颗棱彩星，
+    //   所以星启层上限是 3 + 1 = 4，而不是 3。各玩法星启层位置不同，这里按数据判断，不写死。
+    const earned = Number(floor.star_num ?? floor.star ?? floor.stars ?? floor.total_star_num ?? 0) || 0
     const colored = Number(floor.extra_star_num ?? 0) || 0
-    const normal = Math.max(0, total - colored)
-    return { total, normal, colored, coloredMax: colored > 0 ? colored : 0 }
+    const isTierce = this.isTierceFloor(floor)
+    const normalMax = 3
+    const coloredMax = isTierce ? 1 : 0
+    const normal = Math.min(normalMax, Math.max(0, earned - colored))
+    return {
+      total: earned,
+      normal,
+      colored,
+      isTierce,
+      normalMax,
+      coloredMax,
+      maxStar: normalMax + coloredMax,
+      // 彩星是否真的拿到：拿到才点亮，没拿到就是灰色空位，不再“看起来像满了”
+      coloredFull: coloredMax > 0 && colored >= coloredMax,
+      starSlots: Array.from({ length: normalMax }, (_, i) => (i < normal ? 'on' : ''))
+    }
+  }
+
+  /** 是否为星启模式层（可拿棱彩星的最高难度层，各玩法不同，按数据判断） */
+  isTierceFloor (floor = {}) {
+    if (floor.is_tierce === true || Number(floor.is_tierce) > 0) return true
+    if (Number(floor.extra_star_num) > 0) return true
+    if (Number(floor.star_num ?? floor.star ?? 0) > 3) return true
+    return /星启/.test(String(floor.name || floor.floor_name || floor.level_name || ''))
   }
 
   pickDeepNumber (obj = {}, keys = [], kind = 'value') {
@@ -483,6 +531,59 @@ export class SrAbyss extends plugin {
     }))
   }
 
+  /**
+   * 给每个上阵角色补上光锥（武器）。
+   * 深渊接口本身只返回角色 id / 等级 / 星魂，光锥要另外走「角色列表」接口 avatar/info：
+   * 一次请求就能拿到该账号全部角色的 equip{ id, name, icon, level, rank(叠影), rarity }。
+   * 任何失败都只是没有光锥那一行，不影响主图。
+   */
+  async attachLightCone (e, data) {
+    try {
+      let res = await MysInfo.get(e, 'Character', { cached: true, isTask: true })
+      // 角色列表接口同样会被风控拦（10035/10041/1034/5003），复用深渊那套过码兜底。
+      if (res?.retcode !== 0 && CAPTCHA_CODES.includes(Number(res?.retcode))) {
+        logger.mark(`[星铁深渊三队版] 角色列表遇到验证码 ${res?.retcode}，尝试 ji-plugin 过码兜底`)
+        const retry = await this.retryByJiGeetest(e, 'Character', { need_wiki: true }, res)
+        if (retry?.retcode === 0) res = retry
+      }
+
+      const list = res?.data?.avatar_list
+      if (res?.retcode !== 0 || !Array.isArray(list)) {
+        logger.mark(`[星铁深渊三队版] 光锥信息不可用：retcode=${res?.retcode} ${res?.message || ''}`)
+        return
+      }
+
+      const equipMap = new Map()
+      for (const item of list) {
+        const equip = item?.equip || {}
+        if (!item?.id || !equip.id) continue
+        equipMap.set(String(item.id), {
+          id: equip.id,
+          name: equip.name || item.name_mi18n || item.name || '',
+          icon: equip.icon || equip.image || '',
+          rarity: Number(equip.rarity) || 0,
+          level: Number(equip.level) || 0,
+          affix: Number(equip.rank) || 0
+        })
+      }
+      if (!equipMap.size) return
+
+      let hit = 0
+      for (const floor of data.floors || []) {
+        for (const node of floor.nodes || []) {
+          for (const avatar of node.avatars || []) {
+            const equip = equipMap.get(String(avatar.id)) || null
+            avatar.equip = equip
+            if (equip) hit++
+          }
+        }
+      }
+      logger.mark(`[星铁深渊三队版] 光锥信息已补充：${hit} 个上阵角色（账号共 ${equipMap.size} 个）`)
+    } catch (err) {
+      logger.error(`[星铁深渊三队版] 获取角色光锥失败：${err}`)
+    }
+  }
+
   firstValue (list = [], key) {
     for (const item of list) {
       const value = item?.[key]
@@ -596,10 +697,12 @@ export class SrAbyss extends plugin {
       return true
     }
 
-    const txt = [`${data.title} UID:${data.uid}`, `${data.modeName}${data.scheduleTime ? ` · ${data.scheduleTime}` : ''}`, `星数：${data.totalStar}/${data.maxStar}，最高：${data.maxFloor}，${data.metricTotalLabel}：${data.metricTotalText}`]
+    const txt = [`${data.title} UID:${data.uid}`, `${data.modeName}${data.scheduleTime ? ` · ${data.scheduleTime}` : ''}`, `星数：${data.totalStar}/${data.maxStar}${data.hasColoredStar ? `，彩星：${data.totalColoredStar}/${data.coloredMax}` : ''}，最高：${data.maxFloor}，${data.metricTotalLabel}：${data.metricTotalText}`]
     data.floors.forEach((floor) => {
-      txt.push(`${floor.name} ★${floor.star}/${floor.maxStar} ${data.mainMetric === '积分' ? '总分' : '使用轮次'}:${floor.metricValue}`)
+      txt.push(`${floor.name} ★${floor.star}/${floor.maxStar}${floor.coloredMax ? ` + 彩星 ${floor.coloredStar}/${floor.coloredMax}` : ''} ${data.mainMetric === '积分' ? '总分' : '使用轮次'}:${floor.metricValue}`)
       floor.nodes.forEach((node) => txt.push(`  ${node.label}：${node.avatars.map(a => a.name || a.id).filter(Boolean).join(' / ') || '无配队'}`))
+      const cones = floor.nodes.flatMap(node => (node.avatars || []).filter(a => a.equip?.name).map(a => `${a.name || a.id}-${a.equip.name}${a.equip.affix ? ` R${a.equip.affix}` : ''}`))
+      if (cones.length) txt.push(`  光锥：${cones.join(' / ')}`)
     })
     await e.reply([txt.join('\n'), this.makeButtons(data.modeKey)])
     return true
