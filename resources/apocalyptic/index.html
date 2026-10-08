@@ -78,10 +78,18 @@
             </div>
             <div class="team-row">
               {{each val.node1.avatars a}}
-              <div class="avatar rarity{{a.rarity}}">
+              <div class="avatar rarity{{a.rarity}}{{if a.equip}} has-cone{{/if}}">
                 {{if a.rank>0}}<i>{{a.rank}}魂</i>{{/if}}
                 {{if a.icon}}<img src="{{a.icon}}" />{{/if}}
                 <span>Lv.{{a.level}}</span>
+                {{if a.equip}}
+                <div class="cone" title="{{a.equip.name}}">
+                  <div class="cone-img">
+                    {{if a.equip.icon}}<img src="{{a.equip.icon}}" />{{/if}}
+                    {{if a.equip.affix>0}}<i>{{a.equip.affix}}</i>{{/if}}
+                  </div>
+                </div>
+                {{/if}}
               </div>
               {{/each}}
             </div>
@@ -119,10 +127,18 @@
               {{if mob.avatars && mob.avatars.length}}
               <div class="mini-team">
                 {{each mob.avatars a}}
-                <div class="mini-avatar rarity{{a.rarity}}">
+                <div class="mini-avatar rarity{{a.rarity}}{{if a.equip}} has-cone{{/if}}">
                   {{if a.rank>0}}<i>{{a.rank}}</i>{{/if}}
                   {{if a.icon}}<img src="{{a.icon}}" />{{/if}}
                   <span>{{a.level}}</span>
+                  {{if a.equip}}
+                  <div class="cone" title="{{a.equip.name}}">
+                    <div class="cone-img">
+                      {{if a.equip.icon}}<img src="{{a.equip.icon}}" />{{/if}}
+                      {{if a.equip.affix>0}}<i>{{a.equip.affix}}</i>{{/if}}
+                    </div>
+                  </div>
+                  {{/if}}
                 </div>
                 {{/each}}
               </div>

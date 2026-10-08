@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import lodash from 'lodash'
 import MysInfo from '../../ji-plugin/model/mys/mysInfo.js'
+import { fetchEquipMap, attachEquip } from '../model/lightCone.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -61,6 +62,7 @@ export class WangQi extends plugin {
       }
 
       let renderData = this.dealData(data, uid, isHistory)
+      await this.attachLightCone(e, renderData)
       await this.render(e, renderData)
       return true
     } catch (err) {
@@ -414,6 +416,27 @@ export class WangQi extends plugin {
         this.makeBtn('王棋', '*王棋')
       ]
     ])
+  }
+
+  /**
+   * 给上阵角色补光锥（与深渊/末日同一套）：王棋接口同样不返回光锥，
+   * 走「角色列表」接口 avatar_list 的 equip 字段。失败只是没有光锥那一行。
+   */
+  async attachLightCone (e, data) {
+    try {
+      const equipMap = await fetchEquipMap(e, '异相仲裁')
+      if (!equipMap) return
+
+      const groups = []
+      for (const floor of data.floors || []) {
+        groups.push(floor.node1?.avatars, floor.node2?.avatars)
+        for (const mob of floor.mobs || []) groups.push(mob.avatars)
+      }
+      const hit = attachEquip(groups, equipMap)
+      logger.mark(`[异相仲裁] 光锥信息已补充：${hit} 个上阵角色（账号共 ${equipMap.size} 个）`)
+    } catch (err) {
+      logger.error(`[异相仲裁] 获取角色光锥失败：${err}`)
+    }
   }
 
   async render (e, data) {

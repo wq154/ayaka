@@ -4,9 +4,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import lodash from 'lodash'
 import MysInfo from '../../ji-plugin/model/mys/mysInfo.js'
-import MysApi from '../../ji-plugin/model/mys/mysApi.js'
-import LoveMys from '../../ji-plugin/model/loveMys.js'
 import { Cfg } from '../../ji-plugin/model/tool/index.js'
+import { CAPTCHA_CODES, retryByJiGeetest, fetchEquipMap, attachEquip } from '../model/lightCone.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -47,7 +46,7 @@ const MODES = {
   }
 }
 
-const CAPTCHA_CODES = [1034, 5003, 10035, 10041]
+const CAPTCHA_CODES_LEGACY = null // 已抽到 model/lightCone.js，这里保留占位避免误用
 
 /**
  * 星铁深渊三队版：混沌回忆 / 虚构叙事 / 末日幻影
@@ -191,37 +190,9 @@ export class SrAbyss extends plugin {
     return false
   }
 
+  /** ji-plugin 过码兜底已抽到 model/lightCone.js，两条链路共用 */
   async retryByJiGeetest (e, apiName, data = {}, raw = {}) {
-    try {
-      const ckUser = e.srAbyssCk || await MysInfo.checkUidBing(e.uid, 'sr')
-      if (!ckUser?.ck) return raw
-
-      // 优先复用 ji-plugin 的 handler；如果 runtime handler 未注册，再直接调用 loveMys。
-      const mysApi = new MysApi(e.uid, ckUser.ck, 'sr', {}, ckUser.device || ckUser.device_id || '', ckUser.region || '')
-      const handler = e.runtime?.handler || globalThis.Handler
-      if (handler?.has?.('mys.req.err')) {
-        const ret = await handler.call('mys.req.err', e, { mysApi, type: apiName, res: raw, data, mysInfo: null })
-        if (ret?.retcode === 0) return ret
-      }
-
-      if (Cfg.api?.apiList?.ji?.token) {
-        const loveMys = new LoveMys()
-        const ret = await loveMys.getData(mysApi, apiName, { ...data, isTask: undefined })
-        if (ret?.retcode === 0) return ret
-      }
-
-      if (Cfg.api?.GtestType === 3) return raw
-      if ([1, 2].includes(Number(Cfg.api?.GtestType)) && (!Cfg.api?.api || !Cfg.api?.apiList?.[Cfg.api.api]?.token)) {
-        logger.mark('[星铁深渊三队版] ji-plugin 未配置验证码 token，跳过自动过码')
-        return raw
-      }
-
-      const loveMys = new LoveMys()
-      return await loveMys.getvali(e, mysApi, apiName, { ...data, isTask: undefined }, Number(raw?.retcode) || 1034)
-    } catch (err) {
-      logger.error(`[星铁深渊三队版] ji-plugin 过码兜底异常：${err}`)
-      return raw
-    }
+    return await retryByJiGeetest(e, apiName, data, raw)
   }
 
 
@@ -539,45 +510,14 @@ export class SrAbyss extends plugin {
    */
   async attachLightCone (e, data) {
     try {
-      let res = await MysInfo.get(e, 'Character', { cached: true, isTask: true })
-      // 角色列表接口同样会被风控拦（10035/10041/1034/5003），复用深渊那套过码兜底。
-      if (res?.retcode !== 0 && CAPTCHA_CODES.includes(Number(res?.retcode))) {
-        logger.mark(`[星铁深渊三队版] 角色列表遇到验证码 ${res?.retcode}，尝试 ji-plugin 过码兜底`)
-        const retry = await this.retryByJiGeetest(e, 'Character', { need_wiki: true }, res)
-        if (retry?.retcode === 0) res = retry
-      }
+      const equipMap = await fetchEquipMap(e, '星铁深渊三队版')
+      if (!equipMap) return
 
-      const list = res?.data?.avatar_list
-      if (res?.retcode !== 0 || !Array.isArray(list)) {
-        logger.mark(`[星铁深渊三队版] 光锥信息不可用：retcode=${res?.retcode} ${res?.message || ''}`)
-        return
-      }
-
-      const equipMap = new Map()
-      for (const item of list) {
-        const equip = item?.equip || {}
-        if (!item?.id || !equip.id) continue
-        equipMap.set(String(item.id), {
-          id: equip.id,
-          name: equip.name || item.name_mi18n || item.name || '',
-          icon: equip.icon || equip.image || '',
-          rarity: Number(equip.rarity) || 0,
-          level: Number(equip.level) || 0,
-          affix: Number(equip.rank) || 0
-        })
-      }
-      if (!equipMap.size) return
-
-      let hit = 0
+      const groups = []
       for (const floor of data.floors || []) {
-        for (const node of floor.nodes || []) {
-          for (const avatar of node.avatars || []) {
-            const equip = equipMap.get(String(avatar.id)) || null
-            avatar.equip = equip
-            if (equip) hit++
-          }
-        }
+        for (const node of floor.nodes || []) groups.push(node.avatars)
       }
+      const hit = attachEquip(groups, equipMap)
       logger.mark(`[星铁深渊三队版] 光锥信息已补充：${hit} 个上阵角色（账号共 ${equipMap.size} 个）`)
     } catch (err) {
       logger.error(`[星铁深渊三队版] 获取角色光锥失败：${err}`)
